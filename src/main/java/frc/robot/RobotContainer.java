@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.commands.TeleopDrive;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Gyro;
+import frc.robot.subsystems.Test;
 import frc.robot.subsystems.Vision; 
 import frc.robot.commands.AlignRobotForShot;
 import frc.robot.commands.DriveToTarget;
@@ -30,6 +31,7 @@ public class RobotContainer {
   private final Gyro gyro = new Gyro(); 
   private final TeleopDrive teleopDrive = new TeleopDrive(drivetrain, () -> oi.getDriveThrottle(), () -> oi.getDriveTurn());
   private final AlignRobotForShot alignment = new AlignRobotForShot(limelight, drivetrain);
+  private final Test testfilething = new Test();
   private final DriveToTarget driveTarget = new DriveToTarget(limelight, drivetrain); 
   private final GyroDrive gyroDrive = new GyroDrive(drivetrain, gyro); 
   private final LeftTurn lTurn = new LeftTurn(drivetrain); 
@@ -64,7 +66,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
     //return m_autoCommand;
-    return alignment;
+    return testfilething();
   }
 
   public void setDefaultCommands() {

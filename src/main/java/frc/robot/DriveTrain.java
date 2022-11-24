@@ -22,26 +22,28 @@ import frc.robot.util.OrbitPID;
 
 public class Drivetrain extends SubsystemBase {
   
-  public Spark driveLeft;
-  public Spark driveRight;
+  public CANSparkMax driveLeft;
+  public CANSparkMax driveRight;
 
-  //private OrbitPID drivePID; 
+  public final AHRS gyro;
 
   private Accelerate accel; 
   
+  private final DifferentialDriveOdometry odometry;
 
   public Drivetrain() {
-    driveLeft = new Spark(Constants.Drivetrain.pwmChannelDriveLeft);
-    driveRight = new Spark(Constants.Drivetrain.pwmChannelDriveRight);
+    gyro = new AHRS(Port.kMXP);
+
+    driveLeft = new CANSparkMax(31, MotorType.kBrushless);
+    driveRight = new CANSparkMax(41, MotorType.kBrushless);
 
     driveLeft.setInverted(Constants.Drivetrain.directionDriveLeft);
     driveRight.setInverted(Constants.Drivetrain.directionDriveRight);
 
+    odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(getHeading()));
+
     this.accel = new Accelerate();
   }
-
-  double leftSpeed = 0;  
-  double rightSpeed = 0; 
 
   public void tankDrive(double left, double right) {
     SmartDashboard.putNumber("Left Drive", left);
@@ -49,6 +51,35 @@ public class Drivetrain extends SubsystemBase {
 
     driveLeft.setSpeed(left);
     driveRight.setSpeed(right);
+  }
+
+  public void rotate(double angle) {
+    if (angle < 180) {
+      tankDrive(0.5, -0.5);
+    } else if (angle >= 180) {
+      tankDrive(-0.5, 0.5);
+    }
+
+    double getangle = getHeading();
+
+    if (getangle == angle) {
+      stop();
+    } else if (getangle > angle) {
+      tankDrive(-0.1, 0.1);
+    } else if (getangle < angle) {
+      tankDrive(0.1, -0.1);
+    }
+  }
+
+  public void arcadeDrive(double speed, double turn)
+  {
+    double left;
+    double right;
+
+    left = speed + turn;
+    right = speed + -turn;
+
+    tankDrive(left, right);
   }
 
   public void stop() {
@@ -67,6 +98,30 @@ public class Drivetrain extends SubsystemBase {
 
   public void getRightEncoder() {
     return driveRight.getEncoder();
+  }
+
+  //access pose
+  public Pose2d getPose() {
+    return odometry.getPoseMeters();
+  }
+  
+  //reset pose
+  public void resetOdometry(Pose2d pose) {
+    resetEncoders();
+    odometry.resetPosition(pose, Rotation2d.fromDegrees(getHeading()));
+  }
+
+  public void resetEncoders() {
+    driveLeft.getEncoder().setPosition(0.0);
+    driveRight.getEncoder().setPosition(0.0);
+  }
+
+  public void zeroHeading() {
+    gyro.reset();
+  }
+
+  public double getHeading() {
+    return gyro.getYaw();
   }
 
   @Override
